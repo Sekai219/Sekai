@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAV</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f4f8;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .container {
+      width: 80%;
+      max-width: 1000px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #4a90e2;
+    }
+    .bookmark-folder {
+      margin: 15px 0;
+    }
+    .bookmark-folder strong {
+      font-size: 18px;
+      color: #333;
+      display: block;
+      padding: 10px;
+      background-color: #e9f5fc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .bookmark-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+    .bookmark-list.expanded {
+      max-height: 1000px;
+      opacity: 1;
+    }
+    .bookmark {
+      padding-left: 20px;
+      margin: 5px 0;
+    }
+    .bookmark a {
+      text-decoration: none;
+      color: #4a90e2;
+      transition: color 0.3s;
+    }
+    .bookmark a:hover {
+      color: #ff6f61;
+    }
+    .loading {
+      text-align: center;
+      font-size: 16px;
+      color: #999;
+    }
+    /* 搜索框固定到底部，并去掉背景和边框 */
+    .gcse-search {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      padding: 10px;
+      background-color: transparent; /* 移除背景色 */
+      border: none; /* 去除边框 */
+    }
+    /* 搜索框内部样式调整 */
+    .gsc-control-cse, .gsc-control-cse * {
+      background-color: transparent !important; /* 确保背景透明 */
+      border: none !important; /* 确保去除边框 */
+      box-shadow: none !important; /* 去除阴影 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1> </h1>
+    <div id="bookmark-container" class="loading">加载中...</div>
+  </div>
+
+  <!-- Google 可编程搜索引擎 -->
+<script async src="https://cse.google.com/cse.js?cx=4606d20b413a04e38">
+</script>
+<div class="gcse-search"></div>
+
+  <script>
+    // 获取书签文件内容
+    fetch('/bookmarks')
+      .then(response => response.text())
+      .then(data => {
+        const bookmarkContainer = document.getElementById('bookmark-container');
+        // 调用解析函数
+        const parsedBookmarks = parseBookmarks(data);
+        bookmarkContainer.innerHTML = parsedBookmarks;
+
+        // 为每个书签文件夹添加点击事件
+        document.querySelectorAll('.bookmark-folder strong').forEach(folder => {
+          folder.addEventListener('click', function() {
+            const bookmarkList = this.nextElementSibling;
+            bookmarkList.classList.toggle('expanded');
+
+            // 滚动到当前文件夹
+            if (bookmarkList.classList.contains('expanded')) {
+              this.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching bookmarks:', error);
+        document.getElementById('bookmark-container').innerHTML = '无法加载书签';
+      });
+
+    // 解析书签HTML内容
+    function parseBookmarks(data) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, 'text/html');
+      
+      // 查找文件夹和书签
+      const folders = doc.querySelectorAll('DL > DT > H3');
+      let html = '';
+
+      folders.forEach(folder => {
+        html += `<div class="bookmark-folder"><strong>${folder.textContent}</strong>`;
+        html += `<div class="bookmark-list">`;
+        const links = folder.nextElementSibling.querySelectorAll('A');
+        links.forEach(link => {
+          html += `<div class="bookmark"><a href="${link.href}" target="_blank">${link.textContent}</a></div>`;
+        });
+        html += `</div></div>`;
+      });
+
+      return html;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAC- MAN</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #131313; /* 设置背景色 */
+        }
+
+        .circle-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #7fb80e; /* 绿色 */
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.3s ease; /* 添加点击动画 */
+            -webkit-tap-highlight-color: transparent; /* 去除手机端点击高亮 */
+            outline: none; /* 去除点击时的边框 */
+        }
+
+        .circle-button:active {
+            transform: scale(0.9); /* 点击时缩小 */
+        }
+
+        /* 添加淡入效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .circle-button {
+            animation: fadeIn 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <button class="circle-button" id="pasteBtn" onclick="openAndPaste()">粘贴</button>
+
+    <script>
+        function openAndPaste() {
+            // 打开新窗口，并设置尺寸为 50x150 像素
+            const newWindow = window.open('index.html', '_blank', 'width=50,height=150');
+
+            // 等待新窗口加载完成后触发粘贴
+            newWindow.onload = function() {
+                // 假设新页面有id为pasteBtn的按钮，自动点击该按钮
+                newWindow.document.getElementById('pasteBtn').click();
+
+                // 1秒后自动关闭新窗口
+                setTimeout(() => {
+                    newWindow.close();
+                }, 1000);
+            };
+        }
+    </script>
+</body>
+</html>

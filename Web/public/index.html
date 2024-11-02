@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>233</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" id="meta-theme-color" content="#F9F9F9"> <!-- 初始主题颜色为浅色 -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #1A1A1A;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #FFF;
+      -webkit-tap-highlight-color: transparent; /* 禁用手机端点击时的蓝色遮罩 */
+    }
+
+    /* 上半部分 */
+    .upper-half {
+      width: 100%;
+      height: 45vh; /* 占页面上半部分 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: transparent; /* 设置为透明 */
+      cursor: pointer;
+    }
+
+    /* 下半部分 */
+    .lower-half {
+      width: 100%;
+      height: 45vh; /* 占页面下半部分 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: transparent; /* 设置为透明 */
+      cursor: pointer;
+    }
+
+    /* 水平中间的蓝色细线 */
+    .middle-line {
+      width: 100%;
+      height: 2px;
+      background-color: #4A90E2;
+      animation: lineThicknessAnimation 2s forwards; /* 添加动画 */
+    }
+
+    /* 定义动画 */
+    @keyframes lineThicknessAnimation {
+      0% {
+        height: 2px; /* 初始高度 */
+      }
+      50% {
+        height: 10px; /* 加厚到10px */
+      }
+      100% {
+        height: 2px; /* 恢复到初始高度 */
+      }
+    }
+
+    /* 上下功能区域中的文字 */
+    .upper-half span, .lower-half span {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    /* 弹出的搜索框 */
+    .search-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #1A1A1A;
+      padding: 30px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    .search-popup input {
+      width: 93%;
+      padding: 15px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #333;
+      color: #FFF;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 上半部分区域 -->
+<div class="upper-half" onclick="openFavSite()">
+  <span> </span>
+</div>
+
+<!-- 蓝色细线，位于页面水平中间 -->
+<div class="middle-line"></div>
+
+<!-- 下半部分区域 -->
+<div class="lower-half" onmousedown="startPress()" onmouseup="endPress()" 
+  ontouchstart="startPress()" ontouchend="endPress()">
+  <span> </span>
+</div>
+
+<!-- 弹出的搜索框 -->
+<div class="overlay" id="overlay" onclick="hideSearchPopup()"></div>
+<div class="search-popup" id="search-popup">
+  <form id="search-form" action="https://www.google.com/search" method="GET">
+    <input type="text" name="q" id="search-input" placeholder="在搜索中输入...">
+  </form>
+</div>
+
+<script>
+  let pressTimer;
+  let isLongPress = false;
+  let pressDelay = 500;  // 长按延迟时间
+
+  function startPress() {
+    isLongPress = false;
+    pressTimer = setTimeout(function() {
+      isLongPress = true;
+      showSearchPopup('bing');
+    }, pressDelay);
+  }
+
+  function endPress() {
+    clearTimeout(pressTimer);
+    if (!isLongPress) {
+      setTimeout(() => showSearchPopup('google'), 10);  // 延时处理单击
+    }
+  }
+
+  function openFavSite() {
+    window.location.href = "https://fav.sekai.top/";  // 点击上半部分打开指定网页
+  }
+
+  function showSearchPopup(searchEngine) {
+    const form = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    
+    if (searchEngine === 'google') {
+      form.action = 'https://www.google.com/search';
+      searchInput.placeholder = '搜索 Google...';
+    } else if (searchEngine === 'bing') {
+      form.action = 'https://www.bing.com/search';
+      searchInput.placeholder = '搜索 Bing...';
+    }
+
+    document.getElementById('search-popup').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+    searchInput.focus();
+  }
+
+  function hideSearchPopup() {
+    document.getElementById('search-popup').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+  }
+
+  function setThemeColor() {
+    const metaThemeColor = document.getElementById('meta-theme-color');
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      metaThemeColor.setAttribute('content', '#131313'); // 深色主题
+      document.body.style.backgroundColor = '#131313'; // 设置背景色
+      document.body.style.color = '#FFF'; // 设置文字色
+    } else {
+      metaThemeColor.setAttribute('content', '#F9F9F9'); // 浅色主题
+      document.body.style.backgroundColor = '#F9F9F9'; // 设置背景色
+      document.body.style.color = '#000'; // 设置文字色
+    }
+  }
+
+  // 页面加载时设置初始主题颜色
+  setThemeColor();
+
+  // 监听颜色主题变化
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setThemeColor);
+
+  // 注册 Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').then(function(registration) {
+        console.log('Service Worker 注册成功: ', registration.scope);
+      }, function(err) {
+        console.log('Service Worker 注册失败: ', err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

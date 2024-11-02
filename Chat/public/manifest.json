@@ -1,0 +1,63 @@
+{
+  "name": "Chat",
+  "short_name": "Chat",
+  "description": "A simple chat app.",
+  "start_url": "/",
+  "id": "Sekai",
+  "display": "standalone",
+  "background_color": "#131313",
+  "theme_color": "#131313",
+  "icons": [
+    {
+      "src": "/icons/1.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Clash",
+      "short_name": "go",
+      "description": "clash",
+      "url": "/link/clash.html",
+      "icons": [
+        {
+          "src": "/icons/clash.png",
+          "sizes": "512x512"
+        }
+      ]
+    },
+    {
+      "name": "Copy",
+      "short_name": "go",
+      "description": "copy",
+      "url": "/copy.html",
+      "icons": [
+        {
+          "src": "/icons/copy.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+      "screenshots": [
+        {
+            "src": "/screenshots/1.png",
+            "sizes": "1380x1080",
+            "type": "image/png"
+        },
+        {
+            "src": "/screenshots/2.png",
+            "sizes": "2480x1080",
+            "type": "image/png",
+            "form_factor": "wide"
+        }
+    ]
+}
