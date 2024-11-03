@@ -2,9 +2,12 @@ const CACHE_NAME = 'chat-app-cache-v1';
 const urlsToCache = [
     '/',
     '/index.html',
+    '/copy.html',
     '/manifest.json',
     '/icons/1.png',
     '/socket.io/socket.io.js',
+    '/link/clash.html',
+    '/link/bot.html',
     // 添加其他你需要缓存的静态资源
 ];
 

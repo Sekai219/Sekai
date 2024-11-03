@@ -35,6 +35,18 @@
       ]
     },
     {
+      "name": "Bot",
+      "short_name": "go",
+      "description": "Bot",
+      "url": "/link/bot.html",
+      "icons": [
+        {
+          "src": "/icons/bot.png",
+          "sizes": "512x512"
+        }
+      ]
+    },
+    {
       "name": "Copy",
       "short_name": "go",
       "description": "copy",
