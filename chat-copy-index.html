@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+
+    <!-- 添加PWA相关的meta标签 -->
+    <meta id="theme-color-meta" name="theme-color" content="#131313">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chat App">
+    <link rel="apple-touch-icon" href="/icons/1.png">
+    <link rel="icon" href="/icons/1.png" type="image/png">
+    <link rel="manifest" href="/manifest.json">
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-focus-ring-color: transparent;
+            outline: none;
+        }
+
+        #chat-container {
+            width: 95%;
+            max-width: 800px;
+            height: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            max-width: 90vw;
+            position: relative;
+        }
+
+        #chat {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            max-width: 90vw;
+        }
+
+        #chat div {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            max-width: 75%;
+            word-wrap: break-word;
+            cursor: pointer;
+            white-space: pre-wrap;
+        }
+
+#chat .sent {
+    align-self: flex-end;
+    text-align: right;
+    background: rgba(0, 0, 0, 0.5); /* 黑色半透明背景 */
+    color: white; /* 文字颜色改为白色 */
+    border-radius: 5px;
+}
+
+#chat .received {
+    align-self: flex-start;
+    background: rgba(0, 0, 0, 0.5); /* 黑色半透明背景 */
+    color: white; /* 文字颜色改为白色 */
+    border-radius: 5px;
+}
+
+        #message-container {
+            display: flex;
+            padding: 10px;
+            background: #f7f7f7;
+            border-top: 1px solid #ccc;
+        }
+
+        #message {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        #sendBtn, #pasteBtn {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+
+        #pasteBtn.active {
+            background-color: #6c757d; /* 灰色 */
+        }
+
+        #refreshBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            display: none;
+        }
+
+        @media screen and (max-width: 600px) {
+            #chat-container {
+                width: 90vw;
+                max-width: 90vw;
+            }
+
+            #chat div {
+                max-width: 85%;
+            }
+
+            #chat-container, #chat, #message-container {
+                user-select: none;
+                -webkit-touch-callout: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <button id="refreshBtn"></button>
+        <div id="chat"></div>
+        <div id="message-container">
+            <textarea id="message" rows="2" placeholder="..."></textarea>
+            <button id="pasteBtn">粘贴</button>
+            <button id="sendBtn">发送</button>
+        </div>
+    </div>
+
+    <!-- 加载socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 请求通知权限
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                console.log("Notification permission granted.");
+            } else {
+                console.log("Notification permission denied.");
+            }
+        });
+
+        const socket = io();
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+        const pasteBtn = document.getElementById('pasteBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        let isGray = false;
+
+        function togglePasteBtnColor() {
+            isGray = !isGray;
+            pasteBtn.classList.toggle('active', isGray);
+        }
+
+        function appendMessage(msg, sender) {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.classList.add(sender === socket.id ? 'sent' : 'received');
+            div.addEventListener('click', function() {
+                navigator.clipboard.writeText(msg).then(() => {
+                    refreshBtn.style.display = 'none'; 
+                    togglePasteBtnColor(); // 切换颜色
+                }).catch(err => {
+                    console.error('复制失败', err);
+                });
+            });
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+
+            // 发送通知，排除自己发送的消息
+            if (sender !== socket.id) {
+                sendNotification(msg);
+            }
+
+            refreshBtn.style.display = 'none';
+        }
+
+        function sendNotification(message) {
+            if (Notification.permission === "granted") {
+                const notification = new Notification("New Message", {
+                    body: message,
+                    icon: "/icons/1.png"
+                });
+
+                setTimeout(() => {
+                    notification.close();
+                }, 3000);
+
+                notification.onclick = function() {
+                    this.close();
+                };
+            }
+        }
+
+        socket.on('message', function(data) {
+            appendMessage(data.msg, data.sender);
+        });
+
+        sendBtn.addEventListener('click', function() {
+            const message = messageInput.value;
+            if (message.trim() !== "") {
+                socket.emit('message', { msg: message, sender: socket.id });
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        pasteBtn.addEventListener('click', async function() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text.trim() !== "") {
+                    socket.emit('message', { msg: text, sender: socket.id });
+                    togglePasteBtnColor(); // 切换颜色
+                }
+            } catch (err) {
+                console.error('无法读取剪贴板内容', err);
+            }
+        });
+
+        refreshBtn.addEventListener('click', function() {
+            location.reload();
+        });
+
+        function setThemeColor() {
+            const metaThemeColor = document.getElementById('theme-color-meta');
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (isDarkMode) {
+                // 深色模式样式
+                metaThemeColor.setAttribute('content', '#131313');
+                document.body.style.backgroundColor = '#131313';
+                document.body.style.color = '#ffffff';
+                document.getElementById('chat-container').style.backgroundColor = '#1e1e1e';
+                document.getElementById('message-container').style.backgroundColor = '#292929';
+                document.getElementById('message').style.backgroundColor = '#333333';
+                document.getElementById('message').style.color = '#ffffff';
+            } else {
+                // 浅色模式样式
+                metaThemeColor.setAttribute('content', '#F9F9F9');
+                document.body.style.backgroundColor = '#F9F9F9';
+                document.body.style.color = '#000000';
+                document.getElementById('chat-container').style.backgroundColor = '#ffffff';
+                document.getElementById('message-container').style.backgroundColor = '#f7f7f7';
+                document.getElementById('message').style.backgroundColor = '#ffffff';
+                document.getElementById('message').style.color = '#000000';
+            }
+        }
+
+        setThemeColor();
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setThemeColor);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
